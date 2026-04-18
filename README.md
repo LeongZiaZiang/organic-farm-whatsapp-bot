@@ -6,11 +6,14 @@ Production WhatsApp chatbot for a Malaysian organic farm. Handles the full order
 
 ---
 
-## Screenshots
+## Buyer Flow Walkthrough
 
-| Worker (BM) | Buyer (EN/CN/BM) | Manager proxy |
-|:---:|:---:|:---:|
-| ![worker-flow](docs/screenshots/worker-flow.png) | ![buyer-flow](docs/screenshots/buyer-flow.png) | ![manager-proxy](docs/screenshots/manager-proxy.png) |
+End-to-end ordering journey — menu → LLM-assisted parsing → confirmation → invoice.
+
+| 1. Menu | 2. LLM parse | 3. Confirm | 4. Invoice |
+|:---:|:---:|:---:|:---:|
+| ![menu](docs/screenshots/buyer-01-menu.jpeg) | ![nlu-parse](docs/screenshots/buyer-02-nlu-parse.jpeg) | ![confirm](docs/screenshots/buyer-03-confirm.jpeg) | ![invoice](docs/screenshots/buyer-04-invoice.jpeg) |
+| Welcome + crop list | Free-form order (`"5kg sawi, 2kg baam, 10kg kangkung"`) → Gemini fixes typo (`baam`→`Bayam`) → structured items | Review + delivery date confirm | Invoice generation |
 
 **Sample generated invoice:** [`docs/samples/sample-invoice.pdf`](docs/samples/sample-invoice.pdf)
 

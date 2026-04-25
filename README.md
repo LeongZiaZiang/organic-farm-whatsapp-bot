@@ -54,7 +54,7 @@ flowchart LR
 | PDF | pdflatex (inline LaTeX) | Native Unicode, typographic invoices |
 | Errors | Sentry | Release tracking, PII-free |
 | Deploy | Railway (Docker) | Managed Postgres + Redis add-ons |
-| Testing | pytest + real PG/Redis | 303 tests, ~71% coverage, CI on push/PR |
+| Testing | pytest + real PG/Redis | 347 tests, ~72% coverage, CI on push/PR |
 
 ---
 
@@ -109,7 +109,7 @@ Manager messaging the buyer number triggers a setup phase — enter buyer's phon
 
 ### Testing
 
-- **303 tests**, ~71% coverage, run on every push/PR via GitHub Actions
+- **347 tests**, ~72% coverage, run on every push/PR via GitHub Actions
 - **Integration tests hit real Postgres + Redis** (service containers in CI) — no mocks for the data layer
 - **Shared fixtures** seed workers, buyers, orders, sales, crops, invoices via factory functions
 - **Import-time safety** — env-gated init lets tests import modules without triggering Sentry / DB connections

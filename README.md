@@ -23,18 +23,38 @@ End-to-end ordering journey — menu → LLM-assisted parsing → confirmation �
 
 ```mermaid
 flowchart LR
-    WA[WhatsApp User] -->|webhook| Flask
-    Flask -->|verify sig + replay check| Redis[(Redis<br/>sessions + broker)]
-    Flask -->|200 OK instantly| WA
-    Flask -->|dispatch| Celery[Celery Worker]
-    Celery --> Redis
-    Celery --> PG[(PostgreSQL)]
-    Celery -->|LLM parse| Gemini[Gemini 2.5 Flash]
-    Celery -->|photos + PDFs| R2[(Cloudflare R2)]
-    Celery -->|reply| Meta[Meta WhatsApp<br/>Business API]
-    Meta --> WA
-    Celery -->|errors| Sentry
-    PDF[pdflatex] -.->|invoice generation| Celery
+    subgraph Meta["Meta WhatsApp Cloud API"]
+        WW[Worker number]
+        BW[Buyer number]
+    end
+
+    subgraph App["App (Railway)"]
+        Flask[Flask + Gunicorn]
+        Celery[Celery Worker]
+        PDF[[pdflatex]]
+    end
+
+    subgraph Data["Data layer"]
+        Redis[(Redis<br/>sessions + broker)]
+        PG[(PostgreSQL)]
+        R2[(Cloudflare R2)]
+    end
+
+    Gemini[Gemini 2.5 Flash]
+    Sentry[Sentry]
+
+    WW & BW -->|webhook| Flask
+    Flask -->|verify + dedupe| Redis
+    Flask -.->|200 OK <100ms| Meta
+    Flask -->|enqueue| Redis
+    Redis -->|broker| Celery
+    Celery <--> PG
+    Celery -->|photos/PDFs| R2
+    Celery -->|NLU parse| Gemini
+    Celery -->|reply| Meta
+    Celery --> PDF
+    PDF --> R2
+    Celery -.->|errors| Sentry
 ```
 
 **Routing trick:** dispatches by *receiving* phone number (worker vs buyer WABA), not sender — lets one manager message the buyer number to place proxy orders.

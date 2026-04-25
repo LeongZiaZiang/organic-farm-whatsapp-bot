@@ -23,12 +23,14 @@ End-to-end ordering journey — menu → LLM-assisted parsing → confirmation �
 
 ```mermaid
 flowchart LR
+    User((User))
+
     subgraph Meta["Meta WhatsApp Cloud API"]
         WW[Worker number]
         BW[Buyer number]
     end
 
-    subgraph App["App (Railway)"]
+    subgraph App["App · Railway"]
         Flask[Flask + Gunicorn]
         Celery[Celery Worker]
         PDF[[pdflatex]]
@@ -40,21 +42,29 @@ flowchart LR
         R2[(Cloudflare R2)]
     end
 
-    Gemini[Gemini 2.5 Flash]
-    Sentry[Sentry]
+    subgraph Ext["External"]
+        Gemini[Gemini 2.5 Flash]
+        Sentry[Sentry]
+    end
 
+    User <--> Meta
     WW & BW -->|webhook| Flask
     Flask -->|verify + dedupe| Redis
-    Flask -.->|200 OK <100ms| Meta
-    Flask -->|enqueue| Redis
-    Redis -->|broker| Celery
+    Flask -.->|200 OK| Meta
+    Redis ==>|broker| Celery
     Celery <--> PG
-    Celery -->|photos/PDFs| R2
-    Celery -->|NLU parse| Gemini
+    Celery --> R2
+    Celery --> PDF --> R2
+    Celery --> Gemini
     Celery -->|reply| Meta
-    Celery --> PDF
-    PDF --> R2
     Celery -.->|errors| Sentry
+
+    classDef store fill:#eef,stroke:#557
+    classDef ext fill:#fef6e4,stroke:#c97
+    classDef app fill:#e8f5e8,stroke:#4a4
+    class Redis,PG,R2 store
+    class Gemini,Sentry ext
+    class Flask,Celery,PDF app
 ```
 
 **Routing trick:** dispatches by *receiving* phone number (worker vs buyer WABA), not sender — lets one manager message the buyer number to place proxy orders.
